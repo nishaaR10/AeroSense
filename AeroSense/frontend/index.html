@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroSense - AI-Powered Air Quality Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --good: #2ecc71;
+            --moderate: #f1c40f;
+            --poor: #e67e22;
+            --severe: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-icon {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary);
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+        
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            color: var(--dark);
+        }
+        
+        /* Input Section */
+        .input-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .city-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid var(--light);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .city-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .predict-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .predict-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Features Section */
+        .features-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+        
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-bottom: 40px;
+        }
+        
+        .results-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .city-name {
+            font-size: 28px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .aqi-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .aqi-item {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--light);
+        }
+        
+        .aqi-label {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .aqi-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .status-good { color: var(--good); }
+        .status-moderate { color: var(--moderate); }
+        .status-poor { color: var(--poor); }
+        .status-severe { color: var(--severe); }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-good-bg { background-color: var(--good); }
+        .status-moderate-bg { background-color: var(--moderate); }
+        .status-poor-bg { background-color: var(--poor); }
+        .status-severe-bg { background-color: var(--severe); }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        /* Health Impact Section */
+        .health-impact {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .health-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+        }
+        
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .health-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: var(--light);
+        }
+        
+        .health-metric {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .health-label {
+            font-size: 14px;
+            color: var(--dark);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--dark);
+            font-size: 14px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+        }
+        
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--light);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .badge-icon {
+            font-size: 16px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .predict-btn {
+                padding: 15px;
+            }
+            
+            .aqi-data {
+                grid-template-columns: 1fr;
+            }
+            
+            .badges {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <div class="logo-icon">🌤️</div>
+                    <div class="logo-text">AeroSense</div>
+                </div>
+                <div class="nav-links">
+                    <a href="#prediction" class="nav-link">Prediction</a>
+                    <a href="#health" class="nav-link">Health Impact</a>
+                    <a href="#resources" class="nav-link">NASA Resources</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section class="hero">
+            <h1>From EarthData to Action</h1>
+            <p>AI-powered air quality prediction using NASA Earth observation and OpenAQ data</p>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <input type="text" class="city-input" placeholder="Enter city name (e.g., Los Angeles, New York, London)" id="cityInput">
+                    <button class="predict-btn" id="predictBtn">Predict Air Quality</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Features Section -->
+        <section class="features-section">
+            <div class="feature-card">
+                <div class="feature-icon">🏥</div>
+                <h3 class="feature-title">Health Impact Analysis</h3>
+                <p>Real-time assessment of how current air quality affects respiratory health, asthma risk, and cardiovascular conditions based on WHO guidelines.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛰️</div>
+                <h3 class="feature-title">NASA TEMPO Satellite Data</h3>
+                <p>Integration with NASA's TEMPO instrument providing high-resolution air quality measurements including NO2, formaldehyde, and aerosol data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Multi-Pollutant Analysis</h3>
+                <p>Comprehensive analysis of PM2.5, PM10, Ozone, NO2, SO2, and CO levels with individual health impact assessments.</p>
+            </div>
+        </section>
+        
+        <section class="results-section" id="resultsSection">
+            <div class="tabs">
+                <button class="tab active" data-tab="overview">Overview</button>
+                <button class="tab" data-tab="health">Health Impact</button>
+                <button class="tab" data-tab="pollutants">Pollutant Details</button>
+            </div>
+            
+            <div class="tab-content active" id="overview-tab">
+                <div class="results-card">
+                    <h2 class="city-name" id="cityName">
+                        <span class="location-icon">📍</span>
+                        <span id="cityNameText">City Name</span>
+                    </h2>
+                    
+                    <div class="aqi-data">
+                        <div class="aqi-item">
+                            <div class="aqi-label">Current AQI</div>
+                            <div class="aqi-value" id="currentAqi">--</div>
+                        </div>
+                        
+                        <div class="aqi-item">
+                            <div class="aqi-label">Predicted AQI (24h)</div>
+                            <div class="aqi-value" id="predictedAqi">--</div>
+                        </div>
+                        
+                        <div class="aqi-item">
+                            <div class="aqi-label">Air Quality Status</div>
+                            <div class="aqi-value" id="airQualityStatus">
+                                <span class="status-indicator" id="statusIndicator"></span>
+                                <span id="statusText">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-info" id="statusInfo">
+                        <!-- Status description will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="aqiChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="health-tab">
+                <div class="health-impact">
+                    <h3 class="health-title">Health Impact Assessment</h3>
+                    <div class="health-grid">
+                        <div class="health-item">
+                            <div class="health-metric" id="asthmaRisk">--</div>
+                            <div class="health-label">Asthma Risk Increase</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-metric" id="lungFunction">--</div>
+                            <div class="health-label">Lung Function Impact</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-metric" id="cardioRisk">--</div>
+                            <div class="health-label">Cardiovascular Risk</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-metric" id="vulnerableGroups">--</div>
+                            <div class="health-label">Vulnerable Groups Alert</div>
+                        </div>
+                    </div>
+                    <div class="health-recommendations" id="healthRecommendations" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <!-- Health recommendations will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="pollutants-tab">
+                <div class="chart-container">
+                    <canvas id="pollutantChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>Powered by NASA Earth Observation & OpenAQ — AeroSense Project for NASA Space Apps Challenge</p>
+            <div class="badges">
+                <div class="badge">
+                    <span class="badge-icon">🛰️</span>
+                    <span>NASA EarthData</span>
+                </div>
+                <div class="badge">
+                    <span class="badge-icon">🌍</span>
+                    <span>OpenAQ</span>
+                </div>
+                <div class="badge">
+                    <span class="badge-icon">🏥</span>
+                    <span>WHO Guidelines</span>
+                </div>
+                <div class="badge">
+                    <span class="badge-icon">📡</span>
+                    <span>NASA TEMPO</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // DOM Elements
+        const cityInput = document.getElementById('cityInput');
+        const predictBtn = document.getElementById('predictBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const cityNameText = document.getElementById('cityNameText');
+        const currentAqi = document.getElementById('currentAqi');
+        const predictedAqi = document.getElementById('predictedAqi');
+        const airQualityStatus = document.getElementById('airQualityStatus');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const statusInfo = document.getElementById('statusInfo');
+        
+        // Health impact elements
+        const asthmaRisk = document.getElementById('asthmaRisk');
+        const lungFunction = document.getElementById('lungFunction');
+        const cardioRisk = document.getElementById('cardioRisk');
+        const vulnerableGroups = document.getElementById('vulnerableGroups');
+        const healthRecommendations = document.getElementById('healthRecommendations');
+        
+        // Chart.js instances
+        let aqiChart = null;
+        let pollutantChart = null;
+        
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Event Listeners
+        predictBtn.addEventListener('click', predictAirQuality);
+        cityInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                predictAirQuality();
+            }
+        });
+        
+       // Function to predict air quality
+async function predictAirQuality() {
+    const city = cityInput.value.trim();
+    
+    if (!city) {
+        alert('Please enter a city name');
+        return;
+    }
+    
+    // Show loading state
+    predictBtn.textContent = 'Predicting...';
+    predictBtn.disabled = true;
+    
+    try {
+        // Send request to backend
+        const response = await fetch('http://127.0.0.1:5000/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ city: city })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Update UI with results
+        updateResults(data);
+        
+    } catch (error) {
+        console.error('Prediction error:', error);
+        // Fallback to mock data if API fails
+        const mockData = generateMockData(city);
+        updateResults(mockData);
+        alert('Note: Using demo data (API connection failed)');
+    } finally {
+        // Reset button
+        predictBtn.textContent = 'Predict Air Quality';
+        predictBtn.disabled = false;
+    }
+}
+
+        
+        // Function to generate mock data for demonstration
+        function generateMockData(city) {
+            // Generate random AQI values with some realistic variation
+            const baseAqi = Math.floor(Math.random() * 150) + 30; // Between 30 and 180
+            
+            // Create a trend with some randomness
+            const trend = [];
+            for (let i = 0; i < 5; i++) {
+                trend.push(Math.max(10, baseAqi - 20 + Math.floor(Math.random() * 40)));
+            }
+            
+            // Add the current AQI
+            const current = baseAqi;
+            trend.push(current);
+            
+            // Add the predicted AQI (with some logic)
+            let predicted = current + Math.floor(Math.random() * 40) - 20;
+            predicted = Math.max(10, predicted); // Ensure it doesn't go below 10
+            trend.push(predicted);
+            
+            // Generate pollutant data
+            const pollutants = {
+                'PM2.5': Math.floor(Math.random() * 60) + 10,
+                'PM10': Math.floor(Math.random() * 80) + 15,
+                'O3': Math.floor(Math.random() * 70) + 20,
+                'NO2': Math.floor(Math.random() * 50) + 10,
+                'SO2': Math.floor(Math.random() * 30) + 5,
+                'CO': (Math.random() * 2 + 0.5).toFixed(1)
+            };
+            
+            return {
+                city: city,
+                current_aqi: current,
+                predicted_aqi: predicted,
+                status: getAQIStatus(predicted),
+                trend: trend,
+                pollutants: pollutants
+            };
+        }
+        
+        // Function to determine AQI status
+        function getAQIStatus(aqi) {
+            if (aqi <= 50) return 'Good';
+            if (aqi <= 100) return 'Moderate';
+            if (aqi <= 150) return 'Poor';
+            return 'Severe';
+        }
+        
+        // Function to calculate health impacts
+        function calculateHealthImpacts(aqi, pollutants) {
+            let asthmaRiskValue, lungFunctionValue, cardioRiskValue, vulnerableValue;
+            let recommendations = '';
+            
+            if (aqi <= 50) {
+                asthmaRiskValue = 'Low';
+                lungFunctionValue = 'Normal';
+                cardioRiskValue = 'Low';
+                vulnerableValue = 'Safe';
+                recommendations = 'Air quality is satisfactory. No health impacts expected for the general population.';
+            } else if (aqi <= 100) {
+                asthmaRiskValue = 'Moderate';
+                lungFunctionValue = 'Mild Impact';
+                cardioRiskValue = 'Moderate';
+                vulnerableValue = 'Caution';
+                recommendations = 'Unusually sensitive individuals should consider reducing prolonged or heavy exertion.';
+            } else if (aqi <= 150) {
+                asthmaRiskValue = 'High';
+                lungFunctionValue = 'Moderate Impact';
+                cardioRiskValue = 'High';
+                vulnerableValue = 'Unhealthy';
+                recommendations = 'Children, active adults, and people with respiratory disease should avoid prolonged outdoor exertion.';
+            } else {
+                asthmaRiskValue = 'Very High';
+                lungFunctionValue = 'Severe Impact';
+                cardioRiskValue = 'Very High';
+                vulnerableValue = 'Hazardous';
+                recommendations = 'Everyone should avoid all physical activity outdoors. Sensitive groups should remain indoors.';
+            }
+            
+            return {
+                asthmaRisk: asthmaRiskValue,
+                lungFunction: lungFunctionValue,
+                cardioRisk: cardioRiskValue,
+                vulnerableGroups: vulnerableValue,
+                recommendations: recommendations
+            };
+        }
+        
+        // Function to update the UI with results
+        function updateResults(data) {
+            // Show results section
+            resultsSection.style.display = 'block';
+            
+            // Update city name
+            cityNameText.textContent = data.city;
+            
+            // Update AQI values
+            currentAqi.textContent = data.current_aqi;
+            predictedAqi.textContent = data.predicted_aqi;
+            
+            // Update status with appropriate color
+            const status = data.status;
+            statusText.textContent = status;
+            
+            // Remove all status classes
+            airQualityStatus.classList.remove('status-good', 'status-moderate', 'status-poor', 'status-severe');
+            statusIndicator.classList.remove('status-good-bg', 'status-moderate-bg', 'status-poor-bg', 'status-severe-bg');
+            
+            // Add appropriate status class
+            switch(status) {
+                case 'Good':
+                    airQualityStatus.classList.add('status-good');
+                    statusIndicator.classList.add('status-good-bg');
+                    statusInfo.innerHTML = '<p>Air quality is satisfactory, and air pollution poses little or no risk.</p>';
+                    break;
+                case 'Moderate':
+                    airQualityStatus.classList.add('status-moderate');
+                    statusIndicator.classList.add('status-moderate-bg');
+                    statusInfo.innerHTML = '<p>Air quality is acceptable. However, there may be a risk for some people, particularly those who are unusually sensitive to air pollution.</p>';
+                    break;
+                case 'Poor':
+                    airQualityStatus.classList.add('status-poor');
+                    statusIndicator.classList.add('status-poor-bg');
+                    statusInfo.innerHTML = '<p>Members of sensitive groups may experience health effects. The general public is less likely to be affected.</p>';
+                    break;
+                case 'Severe':
+                    airQualityStatus.classList.add('status-severe');
+                    statusIndicator.classList.add('status-severe-bg');
+                    statusInfo.innerHTML = '<p>Health alert: The risk of health effects is increased for everyone.</p>';
+                    break;
+            }
+            
+            // Calculate and update health impacts
+            const healthData = calculateHealthImpacts(data.predicted_aqi, data.pollutants);
+            asthmaRisk.textContent = healthData.asthmaRisk;
+            lungFunction.textContent = healthData.lungFunction;
+            cardioRisk.textContent = healthData.cardioRisk;
+            vulnerableGroups.textContent = healthData.vulnerableGroups;
+            healthRecommendations.innerHTML = `<p><strong>Health Recommendations:</strong> ${healthData.recommendations}</p>`;
+            
+            // Update charts
+            updateAqiChart(data.trend);
+            updatePollutantChart(data.pollutants);
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Function to update the AQI trend chart
+        function updateAqiChart(trendData) {
+            const ctx = document.getElementById('aqiChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (aqiChart) {
+                aqiChart.destroy();
+            }
+            
+            // Create labels for the chart
+            const labels = [];
+            for (let i = 5; i > 0; i--) {
+                labels.push(`${i} days ago`);
+            }
+            labels.push('Today');
+            labels.push('Tomorrow');
+            
+            // Create the chart
+            aqiChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'AQI Trend',
+                        data: trendData,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3498db',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Air Quality Index (AQI) Trend',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'AQI Value'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Function to update the pollutant chart
+        function updatePollutantChart(pollutants) {
+            const ctx = document.getElementById('pollutantChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (pollutantChart) {
+                pollutantChart.destroy();
+            }
+            
+            // Create the chart
+            pollutantChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(pollutants),
+                    datasets: [{
+                        label: 'Pollutant Concentration',
+                        data: Object.values(pollutants),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Pollutant Concentrations (μg/m³)',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Concentration (μg/m³)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize with a sample city for demonstration
+        window.addEventListener('DOMContentLoaded', () => {
+            cityInput.value = 'Los Angeles';
+        });
+    </script>
+</body>
+</html>

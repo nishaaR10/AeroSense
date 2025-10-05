@@ -1,0 +1,7 @@
+aqi_range,asthma_risk_percent,lung_function_impact,cardio_risk_percent,vulnerable_alert,recommendation
+0-50,5,None,3,None,Air quality is satisfactory. No health impacts expected.
+51-100,15,Mild,8,Low,Sensitive individuals should consider reducing prolonged outdoor exertion.
+101-150,30,Moderate,18,Moderate,Children and people with respiratory issues should limit outdoor activities.
+151-200,50,Significant,30,High,Everyone should reduce outdoor activities. Sensitive groups stay indoors.
+201-300,75,Severe,45,Very High,Avoid all outdoor activities. Sensitive groups remain indoors.
+301-500,95,Extreme,65,Extreme,Health emergency. Remain indoors with air purifiers.
